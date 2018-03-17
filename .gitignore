@@ -1,0 +1,7 @@
+_RELEASE/*.zip
+_SRC/_pyinstaller/
+_SRC/__pycache__/
+_SRC/ui/__pycache__/
+data/settings.ini
+*/.DS_Store
+!*.gitkeep
