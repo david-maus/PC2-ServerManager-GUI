@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: UTF-8 -*-
 """
-Project Cars 2 / Dedicated Server Wrapper & Weather Randomizer.
+Project Cars 2 / Dedicated Server Manager - GUI.
 
 by David Maus/neslane at www.gef-gaming.de
 
