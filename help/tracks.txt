@@ -1,0 +1,141 @@
+"24 Hours of Le Mans Circuit" | Grid : 32
+"Autódromo Internacional do Algarve" | Grid : 32
+"Autodromo Internazionale Enzo E Dino Ferrari Imola" | Grid : 32
+"Autodromo Nazionale Monza GP Historic" | Grid : 22
+"Autodromo Nazionale Monza GP" | Grid : 32
+"Autodromo Nazionale Monza Historic Oval + GP Mix" | Grid : 22
+"Autodromo Nazionale Monza Oval Historic" | Grid : 22
+"Autodromo Nazionale Monza Short" | Grid : 32
+"Azure Circuit" | Grid : 32
+"Azure Coast Stage 1" | Grid : 32
+"Azure Coast Stage 2" | Grid : 24
+"Azure Coast Stage 3" | Grid : 32
+"Azure Coast Westbound" | Grid : 24
+"Azure Coast" | Grid : 32
+"Bannochbrae Road Circuit" | Grid : 20
+"Barcelona Rallycross" | Grid : 6
+"Bathurst Mount Panorama" | Grid : 32
+"Brands Hatch GP" | Grid : 30
+"Brands Hatch Indy" | Grid : 30
+"Brno GP" | Grid : 26
+"Cadwell Park Club" | Grid : 12
+"Cadwell Park GP" | Grid : 12
+"Cadwell Park Woodland" | Grid : 12
+"California Highway Full" | Grid : 32
+"California Highway Reverse" | Grid : 32
+"California Highway Stage 1" | Grid : 32
+"California Highway Stage 2" | Grid : 32
+"California Highway Stage 3" | Grid : 32
+"Chesterfield Karting Circuit" | Grid : 24
+"Circuit de Barcelona-Catalunya Club" | Grid : 32
+"Circuit de Barcelona-Catalunya GP" | Grid : 32
+"Circuit de Barcelona-Catalunya National" | Grid : 32
+"Circuit de Spa-Francorchamps GP" | Grid : 32
+"Circuit de Spa-Francorchamps Historic" | Grid : 20
+"Circuit of the Americas Club" | Grid : 18
+"Circuit of the Americas GP" | Grid : 32
+"Circuit of the Americas National" | Grid : 32
+"Classic Brands Hatch Rallycross" | Grid : 6
+"Daytona International Speedway Rallycross" | Grid : 6
+"Daytona International Speedway Tri-Oval" | Grid : 32
+"Daytona Road Course" | Grid : 32
+"DirtFish Boneyard Course" | Grid : 6
+"DirtFish Mill Run Course" | Grid : 6
+"DirtFish Pro Rallycross Course" | Grid : 6
+"Donington Park GP" | Grid : 32
+"Donington Park National" | Grid : 32
+"Dubai Autodrome Club" | Grid : 32
+"Dubai Autodrome GP" | Grid : 32
+"Dubai Autodrome International" | Grid : 32
+"Dubai Autodrome National" | Grid : 32
+"Dubai Kartdrome" | Grid : 22
+"Fuji GP" | Grid : 32
+"Glencairn East Reverse" | Grid : 16
+"Glencairn East" | Grid : 16
+"Glencairn GP" | Grid : 16
+"Glencairn Reverse" | Grid : 16
+"Glencairn West Reverse" | Grid : 16
+"Glencairn West" | Grid : 16
+"Greenwood Karting Circuit" | Grid : 22
+"Hockenheim Classic GP" | Grid : 32
+"Hockenheim GP" | Grid : 30
+"Hockenheim National" | Grid : 30
+"Hockenheim Rallycross" | Grid : 6
+"Hockenheim Short" | Grid : 30
+"Indianapolis Motor Speedway Oval" | Grid : 32
+"Indianapolis Motor Speedway Road Course" | Grid : 28
+"Knockhill International Reverse" | Grid : 12
+"Knockhill International" | Grid : 12
+"Knockhill National Reverse" | Grid : 12
+"Knockhill National" | Grid : 12
+"Knockhill Rallycross" | Grid : 6
+"Knockhill Tri-Oval" | Grid : 10
+"Lånkebanen Rallycross" | Grid : 6
+"Le Mans Bugatti Circuit" | Grid : 32
+"Le Mans International Karting Circuit" | Grid : 20
+"Long Beach Street Circuit" | Grid : 32
+"Lydden Hill GP" | Grid : 16
+"Lydden Hill Rallycross" | Grid : 6
+"Mazda Raceway Laguna Seca" | Grid : 26
+"Mojave Boa Ascent" | Grid : 32
+"Mojave Cougar Ridge" | Grid : 32
+"Mojave Coyote Noose" | Grid : 32
+"Mojave Gila Crest" | Grid : 32
+"Mojave Sidewinder" | Grid : 32
+"Nürburgring Combined" | Grid : 30
+"Nürburgring GP" | Grid : 30
+"Nürburgring Müllenbach" | Grid : 30
+"Nürburgring Nordschleife Stage 1" | Grid : 32
+"Nürburgring Nordschleife Stage 2" | Grid : 32
+"Nürburgring Nordschleife Stage 3" | Grid : 32
+"Nürburgring Nordschleife" | Grid : 32
+"Nürburgring Sprint Short" | Grid : 30
+"Nürburgring Sprint" | Grid : 30
+"Oschersleben A Course" | Grid : 28
+"Oschersleben B Course" | Grid : 28
+"Oschersleben C Course" | Grid : 24
+"Oulton Park Fosters" | Grid : 26
+"Oulton Park International" | Grid : 26
+"Oulton Park Island" | Grid : 26
+"Rallycross of Loheac" | Grid : 6
+"Red Bull Ring Club" | Grid : 32
+"Red Bull Ring GP" | Grid : 32
+"Red Bull Ring National" | Grid : 32
+"Road America" | Grid : 32
+"Rouen Les Essarts Short" | Grid : 26
+"Rouen Les Essarts" | Grid : 26
+"Ruapuna Park A Circuit" | Grid : 28
+"Ruapuna Park B Circuit" | Grid : 28
+"Ruapuna Park Club" | Grid : 28
+"Ruapuna Park GP" | Grid : 28
+"Ruapuna Park Outer Loop" | Grid : 28
+"Sakitto GP" | Grid : 32
+"Sakitto International" | Grid : 24
+"Sakitto National" | Grid : 24
+"Sakitto Sprint" | Grid : 32
+"Sampala Ice Circuit" | Grid : 6
+"Silverstone Classic GP" | Grid : 18
+"Silverstone GP" | Grid : 32
+"Silverstone International" | Grid : 32
+"Silverstone National" | Grid : 32
+"Silverstone Stowe" | Grid : 8
+"Snetterton 100" | Grid : 26
+"Snetterton 200" | Grid : 26
+"Snetterton 300" | Grid : 26
+"Sonoma Raceway GP" | Grid : 32
+"Sonoma Raceway National" | Grid : 32
+"Sonoma Raceway Short" | Grid : 32
+"Sportsland SUGO" | Grid : 26
+"Summerton International" | Grid : 28
+"Summerton National" | Grid : 28
+"Summerton Sprint" | Grid : 28
+"Texas Motor Speedway Infield Course" | Grid : 20
+"Texas Motor Speedway Road Course" | Grid : 32
+"Texas Motor Speedway" | Grid : 32
+"Watkins Glen International GP" | Grid : 32
+"Watkins Glen International Short" | Grid : 32
+"Wildcrest Rallycross" | Grid : 6
+"Willow Springs Horse Thief Mile" | Grid : 24
+"Willow Springs International Raceway" | Grid : 32
+"Zhuhai International Circuit" | Grid : 32
+"Zolder" | Grid : 32

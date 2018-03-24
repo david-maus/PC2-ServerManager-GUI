@@ -31,6 +31,8 @@ import tarfile
 import base64
 import stat
 import subprocess
+import re
+import time
 
 
 pbar = None
@@ -38,6 +40,8 @@ pbar = None
 
 def show_progress(block_num, block_size, total_size):
     global pbar
+    if total_size == 0:
+        total_size = 50
     if pbar is None:
         pbar = progressbar.ProgressBar(maxval=total_size)
 
@@ -422,6 +426,7 @@ class Ui(QtWidgets.QDialog):
     def fillComboBoxConfigs(self):
         """Start Main Function."""
         self.comboBox_2.clear()
+        self.comboBox_6.clear()
 
         ServerConfigsPath = os.path.join(installPath, self.comboBox.currentText(), 'DedicatedServerWrapperCMDtool', 'configs')
 
@@ -435,6 +440,17 @@ class Ui(QtWidgets.QDialog):
                         output.append(d)
         else:
             output = []
+
+        trackFile = os.path.join(folderCurrent, 'help', 'tracks.txt')
+
+        tracksAll = []
+        with open(trackFile, "r", encoding='utf8') as trackFileIO:
+            for line in trackFileIO:
+                line = re.search('".*"', line).group(0)
+                line = line.replace('"', '')
+                tracksAll.append(line)
+                print(line)
+        self.comboBox_6.addItems(tracksAll)
 
         self.comboBox_2.addItems(output)
         global selectedConfig
@@ -467,6 +483,21 @@ class Ui(QtWidgets.QDialog):
         if index >= 0:
              self.comboBox_4.setCurrentIndex(index)
 
+        trackConfig = config['RACESETTINGS']['Track']
+        trackFile = os.path.join(folderCurrent, 'help', 'tracks.txt')
+
+        with open(trackFile, "r", encoding='utf8') as trackFileIO:
+            for line in trackFileIO:
+                line = re.search('".*"', line).group(0)
+                line = line.replace('"', '')
+                if trackConfig in line:
+                    trackCurrent = line
+
+
+        index = self.comboBox_6.findText(trackCurrent, QtCore.Qt.MatchFixedString)
+        if index >= 0:
+             self.comboBox_6.setCurrentIndex(index)
+
 
     def openURL(self):
         """Start Main Function."""
@@ -495,7 +526,8 @@ if __name__ == '__main__':
         settingsPath = os.path.abspath(os.path.join(folderCurrent, 'data', 'settings.ini'))
     else:
         folderCurrent = os.path.abspath(os.path.dirname(__file__))
-        settingsPath = os.path.abspath(os.path.join(folderCurrent, '../', 'data', 'settings.ini'))
+        folderCurrent = os.path.abspath(os.path.join(folderCurrent, '../'))
+        settingsPath = os.path.abspath(os.path.join(folderCurrent, 'data', 'settings.ini'))
 
     #os.environ['GIT_PYTHON_GIT_EXECUTABLE'] = GIT_PATH
     readSettings()
