@@ -431,10 +431,14 @@ class Ui(QtWidgets.QDialog):
         self.comboBox_15.clear()
         self.comboBox_11.clear()
         self.comboBox_4.clear()
-        maxPlayers = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12', '13', '14', '15', '16', '17', '18', '19', '20', '21', '22', '23', '24', '25', '26', '27', '28', '29', '30', '31', '32', 'max']
+        maxPlayers = list(range(1, 32+1))
+        maxPlayers = [str(x) for x in maxPlayers]
+        maxPlayers.append('AUTO')
         self.comboBox_4.addItems(maxPlayers)
 
-        ClassSlots = ['1', '2', '3', '4']
+        ClassSlots = list(range(1, 4+1))
+        ClassSlots = [str(x) for x in ClassSlots]
+        ClassSlots.append('ALL')
         self.comboBox_11.addItems(ClassSlots)
 
         ServerConfigsPath = os.path.join(installPath, self.comboBox.currentText(), 'DedicatedServerWrapperCMDtool', 'configs')
@@ -458,7 +462,6 @@ class Ui(QtWidgets.QDialog):
                 line = re.search('".*"', line).group(0)
                 line = line.replace('"', '')
                 tracksAll.append(line)
-                print(line)
         self.comboBox_6.addItems(tracksAll)
 
 
@@ -471,7 +474,6 @@ class Ui(QtWidgets.QDialog):
             for line in classesFileIO:
                 line = line.replace('"', '')
                 classesAll.append(line)
-                print(line)
         self.comboBox_12.addItems(classesAll)
         self.comboBox_13.addItems(classesAll)
         self.comboBox_14.addItems(classesAll)
@@ -529,7 +531,34 @@ class Ui(QtWidgets.QDialog):
             self.checkBox_10.setChecked(False)
 
 
-        index = self.comboBox_4.findText(config['SETTINGS']['MaxGrid'], QtCore.Qt.MatchFixedString)
+
+
+
+        if(config['RACESETTINGS']['MandatoryPitStop'] == '1'):
+            self.checkBox_5.setChecked(True)
+        else:
+            self.checkBox_5.setChecked(False)
+
+        if(config['RACESETTINGS']['Cooldownlap'] == '1'):
+            self.checkBox_6.setChecked(True)
+        else:
+            self.checkBox_6.setChecked(False)
+
+        if(config['RACESETTINGS']['Formationlap'] == '1'):
+            self.checkBox_7.setChecked(True)
+        else:
+            self.checkBox_7.setChecked(False)
+
+        if(config['RACESETTINGS']['Rollingstart'] == '1'):
+            self.checkBox_9.setChecked(True)
+        else:
+            self.checkBox_9.setChecked(False)
+
+        MaxGrid = config['SETTINGS']['MaxGrid']
+        if MaxGrid == 'max':
+            MaxGrid = 'AUTO'
+
+        index = self.comboBox_4.findText(MaxGrid, QtCore.Qt.MatchFixedString)
         if index >= 0:
              self.comboBox_4.setCurrentIndex(index)
 
@@ -549,6 +578,9 @@ class Ui(QtWidgets.QDialog):
              self.comboBox_6.setCurrentIndex(index)
 
         ClassSlots = config['RACESETTINGS']['ClassSlots']
+        if ClassSlots == '0':
+            ClassSlots = 'ALL'
+
         index = self.comboBox_11.findText(ClassSlots, QtCore.Qt.MatchFixedString)
         if index >= 0:
              self.comboBox_11.setCurrentIndex(index)
@@ -591,6 +623,20 @@ class Ui(QtWidgets.QDialog):
         index = self.comboBox_15.findText(class04Current, QtCore.Qt.MatchFixedString)
         if index >= 0:
              self.comboBox_15.setCurrentIndex(index)
+
+
+        Year = config['RACESETTINGS']['Year']
+        Month = config['RACESETTINGS']['Month']
+        if (Month == '10' or Month == '11' or Month == '12'):
+            pass
+        else:
+            Month = '0' + Month
+        Day = config['RACESETTINGS']['Day']
+        if (len(Day) - Day.count(" ")) < 2:
+            Day = '0' + Day
+        myPythonicDate = Year + '-' + Month + '-' + Day
+        qtDate = QtCore.QDate.fromString(myPythonicDate, 'yyyy-MM-dd')
+        self.dateEdit.setDate(qtDate)
 
 
     def openURL(self):
