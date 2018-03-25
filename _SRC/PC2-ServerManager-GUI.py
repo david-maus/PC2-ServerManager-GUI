@@ -440,11 +440,51 @@ class Ui(QtWidgets.QDialog):
         self.comboBox_22.clear()
         self.comboBox_23.clear()
 
+
+        self.comboBox_24.clear()
+        self.comboBox_25.clear()
+        self.comboBox_26.clear()
+
+        self.comboBox_27.clear()
+        self.comboBox_28.clear()
+        self.comboBox_29.clear()
+
+        self.comboBox_50.clear()
+        self.comboBox_31.clear()
+        self.comboBox_32.clear()
+        self.comboBox_33.clear()
+
+        WeatherSlots = ['1', '2', '3', '4']
+        self.comboBox_27.addItems(WeatherSlots)
+        self.comboBox_28.addItems(WeatherSlots)
+        self.comboBox_29.addItems(WeatherSlots)
+
+        WeatherprogressValue = ['Sync', 'Realtime', '2x', '5x', '10x', '15x', '20x', '25x', '30x', '40x', '50x', '60x']
+
+        self.comboBox_24.addItems(WeatherprogressValue)
+        self.comboBox_25.addItems(WeatherprogressValue)
+        self.comboBox_26.addItems(WeatherprogressValue)
+
+        LicenseValue = ['U', 'E', 'F', 'D', 'C', 'D', 'B', 'A', 'S']
+        self.comboBox_50.addItems(LicenseValue)
+
         ProgressValues = ['Realtime', '0x', '2x', '5x', '10x', '15x', '20x', '25x', '30x', '40x', '50x', '60x']
 
         self.comboBox_21.addItems(ProgressValues)
         self.comboBox_22.addItems(ProgressValues)
         self.comboBox_23.addItems(ProgressValues)
+
+        DamageValues = ['0', 'visual', 'performance', 'full']
+
+        self.comboBox_31.addItems(DamageValues)
+
+        TireWearValues = ['0', 'slow', 'standard', '2x', '3x', '4x', '5x', '6x', '7x']
+
+        self.comboBox_33.addItems(TireWearValues)
+
+        FuelValues = ['0', 'slow', 'standard']
+
+        self.comboBox_32.addItems(FuelValues)
 
         timeValue = list(range(0, 23+1))
         timeValue = [str(x) for x in timeValue]
@@ -613,6 +653,8 @@ class Ui(QtWidgets.QDialog):
 
 
 
+
+
         class01Config = config['RACESETTINGS']['Class1']
         class02Config = config['RACESETTINGS']['Class2']
         class03Config = config['RACESETTINGS']['Class3']
@@ -645,6 +687,7 @@ class Ui(QtWidgets.QDialog):
         index = self.comboBox_15.findText(class04Current, QtCore.Qt.MatchFixedString)
         if index >= 0:
              self.comboBox_15.setCurrentIndex(index)
+
 
 
         Year = config['RACESETTINGS']['Year']
@@ -751,6 +794,203 @@ class Ui(QtWidgets.QDialog):
         self.horizontalSlider_14.setValue(HeavyFog)
         self.horizontalSlider_16.setValue(HeavyFogWithRain)
         self.horizontalSlider_15.setValue(Hazy)
+
+
+        PracticeSlots = config['WEATHERSLOTS']['Practice']
+        QualifySlots = config['WEATHERSLOTS']['Qualify']
+        RaceSlots = config['WEATHERSLOTS']['Race']
+
+        WeatherprogressP = config['RACESETTINGS']['WeatherprogressP']
+        WeatherprogressQ = config['RACESETTINGS']['WeatherprogressQ']
+        WeatherprogressR = config['RACESETTINGS']['WeatherprogressR']
+
+        MinimumOnlineRank = config['RACESETTINGS']['MinimumOnlineRank']
+        MinimumOnlineRankSafety = MinimumOnlineRank[:1]
+
+        Damage = config['RACESETTINGS']['Damage']
+
+        Fuel = config['RACESETTINGS']['Fuel']
+
+        TireWear = config['RACESETTINGS']['TireWear']
+
+
+
+
+        index = self.comboBox_27.findText(PracticeSlots, QtCore.Qt.MatchFixedString)
+        if index >= 0:
+             self.comboBox_27.setCurrentIndex(index)
+        index = self.comboBox_28.findText(QualifySlots, QtCore.Qt.MatchFixedString)
+        if index >= 0:
+             self.comboBox_28.setCurrentIndex(index)
+        index = self.comboBox_29.findText(RaceSlots, QtCore.Qt.MatchFixedString)
+        if index >= 0:
+             self.comboBox_29.setCurrentIndex(index)
+
+
+        index = self.comboBox_24.findText(WeatherprogressP, QtCore.Qt.MatchFixedString)
+        if index >= 0:
+             self.comboBox_24.setCurrentIndex(index)
+        index = self.comboBox_25.findText(WeatherprogressQ, QtCore.Qt.MatchFixedString)
+        if index >= 0:
+             self.comboBox_25.setCurrentIndex(index)
+        index = self.comboBox_26.findText(WeatherprogressR, QtCore.Qt.MatchFixedString)
+        if index >= 0:
+             self.comboBox_26.setCurrentIndex(index)
+
+
+        index = self.comboBox_50.findText(MinimumOnlineRankSafety, QtCore.Qt.MatchFixedString)
+        if index >= 0:
+             self.comboBox_50.setCurrentIndex(index)
+
+        index = self.comboBox_31.findText(Damage, QtCore.Qt.MatchFixedString)
+        if index >= 0:
+             self.comboBox_31.setCurrentIndex(index)
+
+        index = self.comboBox_32.findText(Fuel, QtCore.Qt.MatchFixedString)
+        if index >= 0:
+             self.comboBox_32.setCurrentIndex(index)
+
+        index = self.comboBox_33.findText(TireWear, QtCore.Qt.MatchFixedString)
+        if index >= 0:
+             self.comboBox_33.setCurrentIndex(index)
+
+
+        MinimumOnlineRankSkill = config['RACESETTINGS']['MinimumOnlineRank']
+        if (MinimumOnlineRankSkill == ''):
+            self.checkBox_54.setChecked(True)
+            MinimumOnlineRankSkill = 0
+        else:
+            MinimumOnlineRankSkill = MinimumOnlineRankSkill[1:]
+            MinimumOnlineRankSkill = int(MinimumOnlineRankSkill)
+            self.checkBox_54.setChecked(False)
+        self.spinBox_6.setValue(MinimumOnlineRankSkill)
+
+
+
+        if(config['RACESETTINGS']['Penalties'] == '1'):
+            self.checkBox_51.setChecked(True)
+        else:
+            self.checkBox_51.setChecked(False)
+
+        if(config['RACESETTINGS']['PenaltyCut'] == '1'):
+            self.checkBox_52.setChecked(True)
+        else:
+            self.checkBox_52.setChecked(False)
+
+        if(config['RACESETTINGS']['PenaltyDT'] == '1'):
+            self.checkBox_53.setChecked(True)
+        else:
+            self.checkBox_53.setChecked(False)
+
+
+        if(config['RACESETTINGS']['MechanicalFailures'] == '1'):
+            self.checkBox_34.setChecked(True)
+        else:
+            self.checkBox_34.setChecked(False)
+
+        self.lineEdit_26.setText(config['RACESETTINGS']['PenaltyMax'])
+
+
+
+
+
+
+
+
+
+
+
+        if(config['RACESETTINGS']['ManualGears'] == '1'):
+            self.checkBox_55.setChecked(True)
+        else:
+            self.checkBox_55.setChecked(False)
+
+        if(config['RACESETTINGS']['PitstopErrors'] == '1'):
+            self.checkBox_56.setChecked(True)
+        else:
+            self.checkBox_56.setChecked(False)
+
+        if(config['RACESETTINGS']['Racedirector'] == '1'):
+            self.checkBox_57.setChecked(True)
+        else:
+            self.checkBox_57.setChecked(False)
+
+        if(config['RACESETTINGS']['Broadcaster'] == '1'):
+            self.checkBox_58.setChecked(True)
+        else:
+            self.checkBox_58.setChecked(False)
+
+        if(config['RACESETTINGS']['CockpitView'] == '1'):
+            self.checkBox_59.setChecked(True)
+        else:
+            self.checkBox_59.setChecked(False)
+
+        if(config['RACESETTINGS']['ManualPitStops'] == '1'):
+            self.checkBox_60.setChecked(True)
+        else:
+            self.checkBox_60.setChecked(False)
+
+        if(config['RACESETTINGS']['ManualRolling'] == '1'):
+            self.checkBox_61.setChecked(True)
+        else:
+            self.checkBox_61.setChecked(False)
+
+        if(config['RACESETTINGS']['ForceSetups'] == '1'):
+            self.checkBox_62.setChecked(True)
+        else:
+            self.checkBox_62.setChecked(False)
+
+        if(config['RACESETTINGS']['AutoEnginestart'] == '1'):
+            self.checkBox_63.setChecked(True)
+        else:
+            self.checkBox_63.setChecked(False)
+
+        if(config['RACESETTINGS']['Drivingline'] == '1'):
+            self.checkBox_64.setChecked(True)
+        else:
+            self.checkBox_64.setChecked(False)
+
+        if(config['RACESETTINGS']['RealisticAIDS'] == '1'):
+            self.checkBox_65.setChecked(True)
+        else:
+            self.checkBox_65.setChecked(False)
+
+        if(config['RACESETTINGS']['AllowTC'] == '1'):
+            self.checkBox_66.setChecked(True)
+        else:
+            self.checkBox_66.setChecked(False)
+
+        if(config['RACESETTINGS']['AllowABS'] == '1'):
+            self.checkBox_67.setChecked(True)
+        else:
+            self.checkBox_67.setChecked(False)
+
+        if(config['RACESETTINGS']['AllowSC'] == '1'):
+            self.checkBox_68.setChecked(True)
+        else:
+            self.checkBox_68.setChecked(False)
+
+        if(config['RACESETTINGS']['RaceReadyInput'] == '1'):
+            self.checkBox_69.setChecked(True)
+        else:
+            self.checkBox_69.setChecked(False)
+
+        if(config['RACESETTINGS']['PitspeedLimiter'] == '1'):
+            self.checkBox_70.setChecked(True)
+        else:
+            self.checkBox_70.setChecked(False)
+
+        if(config['RACESETTINGS']['Ghosting'] == '1'):
+            self.checkBox_71.setChecked(True)
+        else:
+            self.checkBox_71.setChecked(False)
+
+        if(config['RACESETTINGS']['GhostCollisions'] == '1'):
+            self.checkBox_72.setChecked(True)
+        else:
+            self.checkBox_72.setChecked(False)
+
+
 
 
     def openURL(self):
