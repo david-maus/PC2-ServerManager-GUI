@@ -402,9 +402,7 @@ class Ui(QtWidgets.QDialog):
 
     def fillComboBoxServer(self):
         """Start Main Function."""
-        self.comboBox_4.clear()
-        maxPlayers = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', 'max']
-        self.comboBox_4.addItems(maxPlayers)
+
 
 
         self.comboBox.clear()
@@ -427,6 +425,17 @@ class Ui(QtWidgets.QDialog):
         """Start Main Function."""
         self.comboBox_2.clear()
         self.comboBox_6.clear()
+        self.comboBox_12.clear()
+        self.comboBox_13.clear()
+        self.comboBox_14.clear()
+        self.comboBox_15.clear()
+        self.comboBox_11.clear()
+        self.comboBox_4.clear()
+        maxPlayers = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12', '13', '14', '15', '16', '17', '18', '19', '20', '21', '22', '23', '24', '25', '26', '27', '28', '29', '30', '31', '32', 'max']
+        self.comboBox_4.addItems(maxPlayers)
+
+        ClassSlots = ['1', '2', '3', '4']
+        self.comboBox_11.addItems(ClassSlots)
 
         ServerConfigsPath = os.path.join(installPath, self.comboBox.currentText(), 'DedicatedServerWrapperCMDtool', 'configs')
 
@@ -452,6 +461,25 @@ class Ui(QtWidgets.QDialog):
                 print(line)
         self.comboBox_6.addItems(tracksAll)
 
+
+
+
+        classesFile = os.path.join(folderCurrent, 'help', 'classes.txt')
+
+        classesAll = []
+        with open(classesFile, "r", encoding='utf8') as classesFileIO:
+            for line in classesFileIO:
+                line = line.replace('"', '')
+                classesAll.append(line)
+                print(line)
+        self.comboBox_12.addItems(classesAll)
+        self.comboBox_13.addItems(classesAll)
+        self.comboBox_14.addItems(classesAll)
+        self.comboBox_15.addItems(classesAll)
+
+
+
+
         self.comboBox_2.addItems(output)
         global selectedConfig
         selectedConfig = self.comboBox_2.currentText()
@@ -468,6 +496,12 @@ class Ui(QtWidgets.QDialog):
         self.lineEdit_3.setText(config['SETTINGS']['Password'])
         self.lineEdit_4.setText(config['SETTINGS']['ServerRestart'])
 
+        self.lineEdit_14.setText(config['SERVERSETTINGS']['hostPort'])
+        self.lineEdit_15.setText(config['SERVERSETTINGS']['queryPort'])
+
+        self.lineEdit_16.setText(config['SERVERSETTINGS']['sleepWaiting'])
+        self.lineEdit_17.setText(config['SERVERSETTINGS']['sleepActive'])
+
         if(config['SETTINGS']['PracticeServer'] == '1'):
             self.checkBox.setChecked(True)
         else:
@@ -477,6 +511,22 @@ class Ui(QtWidgets.QDialog):
             self.checkBox_2.setChecked(True)
         else:
             self.checkBox_2.setChecked(False)
+
+        if(config['SERVERSETTINGS']['selectDS'] == '1'):
+            self.checkBox_4.setChecked(True)
+        else:
+            self.checkBox_4.setChecked(False)
+
+        if(config['SERVERSETTINGS']['enableHttpApi'] == '1'):
+            self.checkBox_3.setChecked(True)
+        else:
+            self.checkBox_3.setChecked(False)
+
+
+        if(config['WEATHERCHANCE']['AuthenticWeather'] == '1'):
+            self.checkBox_10.setChecked(True)
+        else:
+            self.checkBox_10.setChecked(False)
 
 
         index = self.comboBox_4.findText(config['SETTINGS']['MaxGrid'], QtCore.Qt.MatchFixedString)
@@ -497,6 +547,50 @@ class Ui(QtWidgets.QDialog):
         index = self.comboBox_6.findText(trackCurrent, QtCore.Qt.MatchFixedString)
         if index >= 0:
              self.comboBox_6.setCurrentIndex(index)
+
+        ClassSlots = config['RACESETTINGS']['ClassSlots']
+        index = self.comboBox_11.findText(ClassSlots, QtCore.Qt.MatchFixedString)
+        if index >= 0:
+             self.comboBox_11.setCurrentIndex(index)
+
+
+
+
+
+
+
+        class01Config = config['RACESETTINGS']['Class1']
+        class02Config = config['RACESETTINGS']['Class2']
+        class03Config = config['RACESETTINGS']['Class3']
+        class04Config = config['RACESETTINGS']['Class4']
+
+        classesFile = os.path.join(folderCurrent, 'help', 'classes.txt')
+
+        with open(classesFile, "r", encoding='utf8') as classesFileIO:
+            for line in classesFileIO:
+                line = line.replace('"', '')
+                if class01Config in line:
+                    class01Current = line
+                if class02Config in line:
+                    class02Current = line
+                if class03Config in line:
+                    class03Current = line
+                if class04Config in line:
+                    class04Current = line
+
+
+        index = self.comboBox_12.findText(class01Current, QtCore.Qt.MatchFixedString)
+        if index >= 0:
+             self.comboBox_12.setCurrentIndex(index)
+        index = self.comboBox_14.findText(class02Current, QtCore.Qt.MatchFixedString)
+        if index >= 0:
+             self.comboBox_14.setCurrentIndex(index)
+        index = self.comboBox_13.findText(class03Current, QtCore.Qt.MatchFixedString)
+        if index >= 0:
+             self.comboBox_13.setCurrentIndex(index)
+        index = self.comboBox_15.findText(class04Current, QtCore.Qt.MatchFixedString)
+        if index >= 0:
+             self.comboBox_15.setCurrentIndex(index)
 
 
     def openURL(self):
