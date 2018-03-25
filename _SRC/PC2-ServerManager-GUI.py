@@ -431,6 +431,28 @@ class Ui(QtWidgets.QDialog):
         self.comboBox_15.clear()
         self.comboBox_11.clear()
         self.comboBox_4.clear()
+
+        self.comboBox_16.clear()
+        self.comboBox_17.clear()
+        self.comboBox_18.clear()
+
+        self.comboBox_21.clear()
+        self.comboBox_22.clear()
+        self.comboBox_23.clear()
+
+        ProgressValues = ['Realtime', '0x', '2x', '5x', '10x', '15x', '20x', '25x', '30x', '40x', '50x', '60x']
+
+        self.comboBox_21.addItems(ProgressValues)
+        self.comboBox_22.addItems(ProgressValues)
+        self.comboBox_23.addItems(ProgressValues)
+
+        timeValue = list(range(0, 23+1))
+        timeValue = [str(x) for x in timeValue]
+
+        self.comboBox_16.addItems(timeValue)
+        self.comboBox_17.addItems(timeValue)
+        self.comboBox_18.addItems(timeValue)
+
         maxPlayers = list(range(1, 32+1))
         maxPlayers = [str(x) for x in maxPlayers]
         maxPlayers.append('AUTO')
@@ -637,6 +659,98 @@ class Ui(QtWidgets.QDialog):
         myPythonicDate = Year + '-' + Month + '-' + Day
         qtDate = QtCore.QDate.fromString(myPythonicDate, 'yyyy-MM-dd')
         self.dateEdit.setDate(qtDate)
+
+
+        TimePractice = config['RACESETTINGS']['TimePractice']
+        TimeQuali = config['RACESETTINGS']['TimeQuali']
+        TimeRace = config['RACESETTINGS']['TimeRace']
+
+        index = self.comboBox_16.findText(TimePractice, QtCore.Qt.MatchFixedString)
+        if index >= 0:
+             self.comboBox_16.setCurrentIndex(index)
+
+        index = self.comboBox_17.findText(TimeQuali, QtCore.Qt.MatchFixedString)
+        if index >= 0:
+             self.comboBox_17.setCurrentIndex(index)
+
+        index = self.comboBox_18.findText(TimeRace, QtCore.Qt.MatchFixedString)
+        if index >= 0:
+             self.comboBox_18.setCurrentIndex(index)
+
+
+        self.lineEdit_18.setText(config['RACESETTINGS']['PracticeLenght'])
+        self.lineEdit_19.setText(config['RACESETTINGS']['QualifyLenght'])
+
+        RaceLenght = config['RACESETTINGS']['RaceLenght']
+        if (RaceLenght.endswith(('L'))):
+            self.checkBox_8.setChecked(True)
+            RaceLenght = RaceLenght[:-1]
+        else:
+            self.checkBox_8.setChecked(False)
+            RaceLenght = RaceLenght[:-1]
+        self.lineEdit_20.setText(RaceLenght)
+
+
+        DateprogressP = config['RACESETTINGS']['DateprogressP']
+        DateprogressQ = config['RACESETTINGS']['DateprogressQ']
+        DateprogressR = config['RACESETTINGS']['DateprogressR']
+
+        index = self.comboBox_21.findText(DateprogressP, QtCore.Qt.MatchFixedString)
+        if index >= 0:
+             self.comboBox_21.setCurrentIndex(index)
+
+        index = self.comboBox_22.findText(DateprogressQ, QtCore.Qt.MatchFixedString)
+        if index >= 0:
+             self.comboBox_22.setCurrentIndex(index)
+
+        index = self.comboBox_23.findText(DateprogressR, QtCore.Qt.MatchFixedString)
+        if index >= 0:
+             self.comboBox_23.setCurrentIndex(index)
+
+
+        if(config['WEATHERCHANCE']['AuthenticWeather'] == '1'):
+            self.checkBox_10.setChecked(True)
+        else:
+            self.checkBox_10.setChecked(False)
+
+
+
+
+        Clear = int(config['WEATHERCHANCE']['Clear'])
+        LightCloud = int(config['WEATHERCHANCE']['LightCloud'])
+        MediumCloud = int(config['WEATHERCHANCE']['MediumCloud'])
+        HeavyCloud = int(config['WEATHERCHANCE']['HeavyCloud'])
+        Overcast = int(config['WEATHERCHANCE']['Overcast'])
+        LightRain = int(config['WEATHERCHANCE']['LightRain'])
+        Rain = int(config['WEATHERCHANCE']['Rain'])
+        Storm = int(config['WEATHERCHANCE']['Storm'])
+        ThunderStorm = int(config['WEATHERCHANCE']['ThunderStorm'])
+        snow = int(config['WEATHERCHANCE']['snow'])
+        heavysnow = int(config['WEATHERCHANCE']['heavysnow'])
+        blizzard = int(config['WEATHERCHANCE']['blizzard'])
+        Foggy = int(config['WEATHERCHANCE']['Foggy'])
+        FogWithRain = int(config['WEATHERCHANCE']['FogWithRain'])
+        HeavyFog = int(config['WEATHERCHANCE']['HeavyFog'])
+        HeavyFogWithRain = int(config['WEATHERCHANCE']['HeavyFogWithRain'])
+        Hazy = int(config['WEATHERCHANCE']['Hazy'])
+
+        self.horizontalSlider_7.setValue(Clear)
+        self.horizontalSlider.setValue(LightCloud)
+        self.horizontalSlider_2.setValue(MediumCloud)
+        self.horizontalSlider_3.setValue(HeavyCloud)
+        self.horizontalSlider_4.setValue(Overcast)
+        self.horizontalSlider_5.setValue(LightRain)
+        self.horizontalSlider_6.setValue(Rain)
+        self.horizontalSlider_13.setValue(Storm)
+        self.horizontalSlider_8.setValue(ThunderStorm)
+        self.horizontalSlider_9.setValue(snow)
+        self.horizontalSlider_10.setValue(heavysnow)
+        self.horizontalSlider_11.setValue(blizzard)
+        self.horizontalSlider_12.setValue(Foggy)
+        self.horizontalSlider_17.setValue(FogWithRain)
+        self.horizontalSlider_14.setValue(HeavyFog)
+        self.horizontalSlider_16.setValue(HeavyFogWithRain)
+        self.horizontalSlider_15.setValue(Hazy)
 
 
     def openURL(self):
