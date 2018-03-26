@@ -525,7 +525,7 @@
          </size>
         </property>
         <property name="text">
-         <string>Save as</string>
+         <string>Duplicate</string>
         </property>
         <property name="autoDefault">
          <bool>false</bool>
@@ -574,7 +574,7 @@
          <property name="geometry">
           <rect>
            <x>0</x>
-           <y>-1272</y>
+           <y>0</y>
            <width>405</width>
            <height>1601</height>
           </rect>
