@@ -34,12 +34,12 @@ class Steamcmd(object):
         self.platform = platform.system()
         if self.platform == 'Windows':
             self.steamcmd_url = 'https://steamcdn-a.akamaihd.net/client/installer/steamcmd.zip'
-            self.steamcmd_zip = 'steamcmd.zip'
+            self.steamcmd_zip = os.path.join(install_path, 'steamcmd.zip')
             self.steamcmd_exe = os.path.join(self.install_path, 'steamcmd.exe')
 
         elif self.platform == 'Linux':
             self.steamcmd_url = "https://steamcdn-a.akamaihd.net/client/installer/steamcmd_linux.tar.gz"
-            self.steamcmd_zip = 'steamcmd.tar.gz'
+            self.steamcmd_zip = os.path.join(install_path, 'steamcmd.tar.gz')
             self.steamcmd_exe = os.path.join(self.install_path, 'steamcmd.sh')
 
         else:
@@ -49,6 +49,7 @@ class Steamcmd(object):
     def _download_steamcmd(self):
         try:
             return urllib.request.urlretrieve(self.steamcmd_url, self.steamcmd_zip)
+
         except Exception as e:
             raise SteamcmdException('An unknown exception occurred! {}'.format(e))
 
@@ -87,7 +88,7 @@ class Steamcmd(object):
             pass
         return
 
-    def install_gamefiles(self, gameid, game_install_dir, user='anonymous', password=None, validate=False):
+    def install_gamefiles(self, gameid, game_install_dir, user=None, password=None, validate=False):
         """
         Installs gamefiles for dedicated server. This can also be used to update the gameserver.
         :param gameid: steam game id for the files downloaded
@@ -111,6 +112,6 @@ class Steamcmd(object):
             '+quit',
         )
         try:
-            return subprocess.check_call(steamcmd_params)
+            return subprocess.call(steamcmd_params)
         except subprocess.CalledProcessError:
             raise SteamcmdException("Steamcmd was unable to run. Did you install your 32-bit libraries?")

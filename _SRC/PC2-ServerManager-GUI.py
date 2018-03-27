@@ -13,9 +13,10 @@ WARNING MESSY CODE! :)
 import os
 import sys; sys.dont_write_bytecode = True
 os.environ["QT_AUTO_SCREEN_SCALE_FACTOR"] = "1"
-from PyQt5 import uic, QtCore, QtWidgets
+from PyQt5 import uic, QtCore, QtWidgets, QtGui
+from PyQt5.QtCore import QThread, pyqtSignal, pyqtSlot
 from PyQt5.QtWidgets import QApplication, QWidget, QInputDialog, QLineEdit, QFileDialog
-from PyQt5.QtGui import QPalette, QColor, QFont
+from PyQt5.QtGui import QPalette, QColor, QFont, QIcon
 import glob
 import webbrowser
 from ui import resources
@@ -26,7 +27,6 @@ import shutil
 import tempfile
 import urllib.request
 import zipfile
-import progressbar
 import tarfile
 import base64
 import stat
@@ -35,23 +35,119 @@ import re
 import time
 import psutil
 
-pbar = None
+
+class DownloadToolsThread(QThread):
+
+    percent_signal = QtCore.pyqtSignal(int)
+
+    def __init__(self, serverName, parent=None):
+        QThread.__init__(self)
+        self.serverName = serverName
+
+    def __del__(self):
+        self.wait()
+
+    def run(self):
+        self.percent_signal.emit(10)
+        serverName = str(self.serverName)
+
+        def report(count, blockSize, totalSize):
+            if(totalSize > 0):
+                pass
+            else:
+                totalSize = 500
+            global percent
+            percent = int(count*blockSize*100/totalSize)
+            self.percent_signal.emit(percent)
+
+        steamcmd_path = os.path.join(installPath, '_steamcmd_')
+        gameserver_path = os.path.join(installPath, serverName)
+
+        pathlib.Path(installPath).mkdir(parents=False, exist_ok=True)
+        pathlib.Path(steamcmd_path).mkdir(parents=False, exist_ok=True)
+        pathlib.Path(gameserver_path).mkdir(parents=False, exist_ok=True)
+
+        steamcmd = pysteamcmd.Steamcmd(steamcmd_path)
+        steamcmd.install()
+        steamcmd.install_gamefiles(gameid=413770, game_install_dir=gameserver_path, user=steam_user, password=steam_pw, validate=True)
 
 
-def show_progress(block_num, block_size, total_size):
-    global pbar
-    if total_size == 0:
-        total_size = 50
-    if pbar is None:
-        pbar = progressbar.ProgressBar(maxval=total_size)
+        serverWrapperURL = 'https://github.com/david-maus/PC2-ServerManager-CMDtool/archive/master.zip'
+        zip_name = 'DedicatedServerWrapperCMDtool.zip'
+        serverWrapperDLname = os.path.join(installPath, zip_name)
 
-    downloaded = block_num * block_size
-    if downloaded < total_size:
-        pbar.update(downloaded)
-    else:
-        pbar.finish()
-        pbar = None
+        print('\n\n\nDownloading DedicatedServerWrapper Tool:\n')
 
+        urllib.request.urlretrieve(serverWrapperURL, serverWrapperDLname, reporthook=report)
+
+        ROOT_PATH = 'PC2-ServerManager-CMDtool-master/'
+        temp_dir = tempfile.mkdtemp()
+        extraction_dir = os.path.join(gameserver_path, os.path.splitext(zip_name)[0])
+
+        print('\n\n\nUnzipping DedicatedServerWrapper Tool: \n')
+
+        with zipfile.ZipFile(serverWrapperDLname, 'r') as zip_file:
+
+            members = zip_file.namelist()
+            members_to_extract = [m for m in members if m.startswith(ROOT_PATH)]
+
+            count = 0
+
+            for item in members:
+                count += 1
+                print('Unzip file: ' + item.replace(ROOT_PATH, ''))
+
+            zip_file.extractall(temp_dir, members_to_extract)
+            #shutil.move(os.path.join(temp_dir, ROOT_PATH), extraction_dir)
+            copyTree(os.path.join(temp_dir, ROOT_PATH), extraction_dir)
+        try:
+            os.remove(os.path.join(steamcmd_path, 'steamcmd.zip'))
+
+        except:
+            pass
+        os.remove(serverWrapperDLname)
+        # try:
+        #     shutil.rmtree(temp_dir)  # delete directory
+        # except OSError as exc:
+        #     pass
+
+        print('\n\n\nServer install finished! \n')
+
+
+def forceMergeFlatDir(srcDir, dstDir):
+    if not os.path.exists(dstDir):
+        os.makedirs(dstDir)
+    for item in os.listdir(srcDir):
+        srcFile = os.path.join(srcDir, item)
+        dstFile = os.path.join(dstDir, item)
+        forceCopyFile(srcFile, dstFile)
+
+def forceCopyFile (sfile, dfile):
+    if os.path.isfile(sfile):
+        shutil.copy2(sfile, dfile)
+
+def isAFlatDir(sDir):
+    for item in os.listdir(sDir):
+        sItem = os.path.join(sDir, item)
+        if os.path.isdir(sItem):
+            return False
+    return True
+
+
+def copyTree(src, dst):
+    for item in os.listdir(src):
+        s = os.path.join(src, item)
+        d = os.path.join(dst, item)
+        if os.path.isfile(s):
+            if not os.path.exists(dst):
+                os.makedirs(dst)
+            forceCopyFile(s,d)
+        if os.path.isdir(s):
+            isRecursive = not isAFlatDir(s)
+            if isRecursive:
+                copyTree(s, d)
+            else:
+                forceMergeFlatDir(s, d)
 
 def encode(key, clear):
     enc = []
@@ -85,101 +181,6 @@ def startServerFunc(state):
                 proc.kill()
             if WrapperName in proc.name():
                 proc.kill()
-
-def installServer(serverName):
-    steamcmd_path = os.path.join(installPath, '_steamcmd_')
-    gameserver_path = os.path.join(installPath, serverName)
-
-    pathlib.Path(installPath).mkdir(parents=False, exist_ok=True)
-    pathlib.Path(steamcmd_path).mkdir(parents=False, exist_ok=True)
-    pathlib.Path(gameserver_path).mkdir(parents=False, exist_ok=True)
-
-    steamcmd = pysteamcmd.Steamcmd(steamcmd_path)
-    steamcmd.install()
-    steamcmd.install_gamefiles(gameid=413770, game_install_dir=gameserver_path, user=steam_user, password=steam_pw, validate=True)
-
-
-    serverWrapperURL = 'https://github.com/david-maus/PC2-ServerManager-CMDtool/archive/master.zip'
-    zip_name = 'DedicatedServerWrapperCMDtool.zip'
-    serverWrapperDLname = os.path.join(installPath, zip_name)
-
-    print('\n\n\nDownloading DedicatedServerWrapper Tool:\n')
-
-    urllib.request.urlretrieve(serverWrapperURL, serverWrapperDLname, show_progress)
-
-    ROOT_PATH = 'PC2-ServerManager-CMDtool-master/'
-    temp_dir = tempfile.mkdtemp()
-    extraction_dir = os.path.join(gameserver_path, os.path.splitext(zip_name)[0])
-
-    print('\n\n\nUnzipping DedicatedServerWrapper Tool: \n')
-
-    with zipfile.ZipFile(serverWrapperDLname, 'r') as zip_file:
-
-        members = zip_file.namelist()
-        members_to_extract = [m for m in members if m.startswith(ROOT_PATH)]
-
-        fileCount = len(members)
-        count = 0
-
-        bar = progressbar.ProgressBar(max_value=fileCount, redirect_stdout=True)
-        for item in members:
-            count += 1
-            print('Unzip file: ' + item.replace(ROOT_PATH, ''))
-            bar.update(count)
-
-        zip_file.extractall(temp_dir, members_to_extract)
-        shutil.move(os.path.join(temp_dir, ROOT_PATH), extraction_dir)
-    os.remove(serverWrapperDLname)
-
-    print('\n\n\nServer install finished! \n')
-
-
-def updateServer():
-    steamcmd_path = os.path.join(installPath, '_steamcmd_')
-    gameserver_path = os.path.join(installPath, selectedServer)
-    if(selectedServer == ''):
-        pass
-    else:
-        pathlib.Path(steamcmd_path).mkdir(parents=False, exist_ok=True)
-        pathlib.Path(gameserver_path).mkdir(parents=False, exist_ok=True)
-
-        steamcmd = pysteamcmd.Steamcmd(steamcmd_path)
-        steamcmd.install()
-        steamcmd.install_gamefiles(gameid=413770, game_install_dir=gameserver_path, user=steam_user, password=steam_pw, validate=True)
-
-        serverWrapperURL = 'https://github.com/david-maus/PC2-ServerManager-CMDtool/archive/master.zip'
-        zip_name = 'DedicatedServerWrapperCMDtool.zip'
-        serverWrapperDLname = os.path.join(installPath, zip_name)
-
-        print('\n\n\nDownloading DedicatedServerWrapper Tool:\n')
-
-        urllib.request.urlretrieve(serverWrapperURL, serverWrapperDLname, show_progress)
-
-        ROOT_PATH = 'PC2-ServerManager-CMDtool-master/'
-        temp_dir = tempfile.mkdtemp()
-        extraction_dir = os.path.join(gameserver_path, os.path.splitext(zip_name)[0])
-
-        print('\n\n\nUnzipping DedicatedServerWrapper Tool: \n')
-
-        with zipfile.ZipFile(serverWrapperDLname, 'r') as zip_file:
-
-            members = zip_file.namelist()
-            members_to_extract = [m for m in members if m.startswith(ROOT_PATH)]
-
-            fileCount = len(members)
-            count = 0
-
-            bar = progressbar.ProgressBar(max_value=fileCount, redirect_stdout=True)
-            for item in members:
-                count += 1
-                print('Unzip file: ' + item.replace(ROOT_PATH, ''))
-                bar.update(count)
-
-            zip_file.extractall(temp_dir, members_to_extract)
-            shutil.move(os.path.join(temp_dir, ROOT_PATH), extraction_dir)
-        os.remove(serverWrapperDLname)
-
-        print('\n\n\nServer install finished! \n')
 
 def on_rm_error( func, path, exc_info):
     # path contains the path of the file that couldn't be removed
@@ -335,6 +336,32 @@ class UiSteamLogin(QtWidgets.QDialog):
         writeSettings(installPath, steam_userNEW, steam_pwNEW)
 
 
+class UiDownload(QtWidgets.QDialog):
+    """Make Steam Login Window."""
+    my_signal = pyqtSignal()
+    def __init__(self, serverName=None):
+        """Initialize Steam Login Window."""
+        super(UiDownload, self).__init__()
+        uic.loadUi(uiDownloadFilePath, self)
+        self.setWindowTitle('Downloading Server & CMD-Tools...')
+        self.progressBar.setValue(0)
+        self.show()
+        self.myThread = DownloadToolsThread(serverName)
+        self.myThread.percent_signal.connect(self.on_count_change)
+        self.myThread.finished.connect(self.thread_finished)
+        self.myThread.start()
+
+    def thread_finished(self):
+        self.hide()
+        self.my_signal.emit()
+
+
+    def on_count_change(self, value):
+        self.progressBar.setValue(value)
+
+
+
+
 
 class Ui(QtWidgets.QDialog):
     """Make Main Window."""
@@ -359,9 +386,9 @@ class Ui(QtWidgets.QDialog):
         self.pushButton_10.clicked.connect(self.duplicateConfigINI)
         self.pushButton_4.clicked.connect(self.addServer)
         self.pushButton_5.clicked.connect(self.removeServer)
-        self.pushButton_6.clicked.connect(lambda: updateServer())
-        self.pushButton_22.clicked.connect(lambda: startServerFunc(state='start'))
-        self.pushButton_23.clicked.connect(lambda: startServerFunc(state='stop'))
+        self.pushButton_6.clicked.connect(self.updateServer)
+        self.pushButton_22.clicked.connect(self.startServer)
+        self.pushButton_23.clicked.connect(self.stopServer)
         self.show()
 
     def handleOpenDialog(self):
@@ -370,74 +397,94 @@ class Ui(QtWidgets.QDialog):
         self.dialog.exec_()
 
     def startServer(self):
-        startServerFunc()
+        if(self.comboBox.currentText() == ''):
+            pass
+        else:
+            startServerFunc(state='start')
+
+    def stopServer(self):
+        if(self.comboBox.currentText() == ''):
+            pass
+        else:
+            startServerFunc(state='stop')
 
     def removeConfigINI(self):
-        ServerConfigsPath = os.path.join(installPath, selectedServer, 'DedicatedServerWrapperCMDtool', 'configs', selectedConfig)
-        if os.path.isfile(ServerConfigsPath):
-            os.remove(ServerConfigsPath)
-        else:
+        if(self.comboBox_2.currentText() == ''):
             pass
-        self.fillComboBoxConfigs()
+        else:
+            ServerConfigsPath = os.path.join(installPath, selectedServer, 'DedicatedServerWrapperCMDtool', 'configs', selectedConfig)
+            if os.path.isfile(ServerConfigsPath):
+                os.remove(ServerConfigsPath)
+            else:
+                pass
+            self.fillComboBoxConfigs()
 
     def duplicateConfigINI(self):
-        global selectedConfig
-        selectedConfig = selectedConfig.replace('.ini', '') + '.ini'
-        selectedConfigCOPY = selectedConfig.replace('.ini', '') + '-COPY.ini'
+        if(self.comboBox_2.currentText() == ''):
+            pass
+        else:
 
-        ServerConfigsPathCOPY = os.path.join(installPath, selectedServer, 'DedicatedServerWrapperCMDtool', 'configs', selectedConfigCOPY)
-        ServerConfigsPath = os.path.join(installPath, selectedServer, 'DedicatedServerWrapperCMDtool', 'configs', selectedConfig)
+            global selectedConfig
+            selectedConfig = selectedConfig.replace('.ini', '') + '.ini'
+            selectedConfigCOPY = selectedConfig.replace('.ini', '') + '-COPY.ini'
 
-        shutil.copy(ServerConfigsPath, ServerConfigsPathCOPY)
+            ServerConfigsPathCOPY = os.path.join(installPath, selectedServer, 'DedicatedServerWrapperCMDtool', 'configs', selectedConfigCOPY)
+            ServerConfigsPath = os.path.join(installPath, selectedServer, 'DedicatedServerWrapperCMDtool', 'configs', selectedConfig)
 
-        self.lineEdit_7.setText('')
-        self.fillComboBoxConfigs()
-        index = self.comboBox_2.findText(selectedConfigCOPY, QtCore.Qt.MatchFixedString)
-        if index >= 0:
-             self.comboBox_2.setCurrentIndex(index)
+            shutil.copy(ServerConfigsPath, ServerConfigsPathCOPY)
+
+            self.lineEdit_7.setText('')
+            self.fillComboBoxConfigs()
+            index = self.comboBox_2.findText(selectedConfigCOPY, QtCore.Qt.MatchFixedString)
+            if index >= 0:
+                 self.comboBox_2.setCurrentIndex(index)
 
 
 
     def renameConfigINI(self):
-        configININame = self.lineEdit_7.text()
-        if configININame.endswith('.ini'):
-            pass
-        else:
-            configININame = configININame + '.ini'
 
-        ServerConfigsPathNEW = os.path.join(installPath, selectedServer, 'DedicatedServerWrapperCMDtool', 'configs', configININame)
-        ServerConfigsPath = os.path.join(installPath, selectedServer, 'DedicatedServerWrapperCMDtool', 'configs', selectedConfig)
-        if(self.lineEdit_7.text() == ''):
+        if(self.lineEdit_7.text() == '' or self.comboBox_2.currentText() == ''):
             pass
         else:
+            configININame = self.lineEdit_7.text()
+            if configININame.endswith('.ini'):
+                pass
+            else:
+                configININame = configININame + '.ini'
+
+            ServerConfigsPathNEW = os.path.join(installPath, selectedServer, 'DedicatedServerWrapperCMDtool', 'configs', configININame)
+            ServerConfigsPath = os.path.join(installPath, selectedServer, 'DedicatedServerWrapperCMDtool', 'configs', selectedConfig)
             os.rename(ServerConfigsPath, ServerConfigsPathNEW)
 
-        self.lineEdit_7.setText('')
-        self.fillComboBoxConfigs()
-        index = self.comboBox_2.findText(configININame, QtCore.Qt.MatchFixedString)
-        if index >= 0:
-             self.comboBox_2.setCurrentIndex(index)
+            self.lineEdit_7.setText('')
+            self.fillComboBoxConfigs()
+            index = self.comboBox_2.findText(configININame, QtCore.Qt.MatchFixedString)
+            if index >= 0:
+                 self.comboBox_2.setCurrentIndex(index)
 
     def addConfigINI(self):
-        configININame = self.lineEdit_7.text()
-        if configININame.endswith('.ini'):
+        if(self.comboBox.currentText() == ''):
             pass
         else:
-            configININame = configININame + '.ini'
+            configININame = self.lineEdit_7.text()
+            if configININame.endswith('.ini'):
+                pass
+            else:
+                configININame = configININame + '.ini'
 
-        ServerConfigsPathNEW = os.path.join(installPath, selectedServer, 'DedicatedServerWrapperCMDtool', 'configs', configININame)
-        basicINI = os.path.join(folderCurrent, 'help', 'basic.ini')
+            ServerConfigsPathNEW = os.path.join(installPath, selectedServer, 'DedicatedServerWrapperCMDtool', 'configs', configININame)
+            basicINI = os.path.join(folderCurrent, 'help', 'basic.ini')
 
-        if(self.lineEdit_7.text() == ''):
-            pass
-        else:
-            shutil.copy(basicINI, ServerConfigsPathNEW)
+            if(self.lineEdit_7.text() == ''):
+                pass
+            else:
+                shutil.copy(basicINI, ServerConfigsPathNEW)
 
-        self.lineEdit_7.setText('')
-        self.fillComboBoxConfigs()
-        index = self.comboBox_2.findText(configININame, QtCore.Qt.MatchFixedString)
-        if index >= 0:
-             self.comboBox_2.setCurrentIndex(index)
+            self.lineEdit_7.setText('')
+            self.fillComboBoxConfigs()
+            index = self.comboBox_2.findText(configININame, QtCore.Qt.MatchFixedString)
+            if index >= 0:
+                 self.comboBox_2.setCurrentIndex(index)
 
 
 
@@ -453,26 +500,48 @@ class Ui(QtWidgets.QDialog):
         selectedConfig = self.comboBox_2.currentText()
         self.readServerSettings()
 
-    def addServer(self):
+    def updateServer(self):
         """Show Steam Login Window."""
-        serverName = self.lineEdit_6.text()
-        serverName = '_PC2DS-' + serverName
-        if(self.lineEdit_6.text() == ''):
+
+
+        if(self.comboBox.currentText() == ''):
             pass
         else:
-            installServer(serverName)
-            self.lineEdit_6.setText('')
-            self.fillComboBoxServer()
-            index = self.comboBox.findText(serverName, QtCore.Qt.MatchFixedString)
-            if index >= 0:
-                 self.comboBox.setCurrentIndex(index)
+            serverName = self.comboBox.currentText()
+            serverName = '_PC2DS-' + serverName
+            self.dialog = UiDownload(serverName)
+            self.dialog.my_signal.connect(lambda: self.afterThread(serverName))
+
+    def addServer(self):
+        """Show Steam Login Window."""
+
+        serverName = self.lineEdit_6.text()
+        serverName = '_PC2DS-' + serverName
+        if(self.lineEdit_6.text() == '' or self.lineEdit_5.text() == ''):
+            pass
+        else:
+            if(steam_user == ''):
+                pass
+            else:
+                self.dialog = UiDownload(serverName)
+                self.dialog.my_signal.connect(lambda: self.afterThread(serverName))
+
+    def afterThread(self, serverName):
+        self.lineEdit_6.setText('')
+        self.fillComboBoxServer()
+        index = self.comboBox.findText(serverName, QtCore.Qt.MatchFixedString)
+        if index >= 0:
+             self.comboBox.setCurrentIndex(index)
 
     def removeServer(self):
         """Show Steam Login Window."""
-        selectedServer = '_PC2DS-' + self.comboBox.currentText()
-        removeSelectedServer(selectedServer)
-        self.fillComboBoxServer()
-        self.fillComboBoxConfigs()
+        if(self.comboBox.currentText() == ''):
+            pass
+        else:
+            selectedServer = '_PC2DS-' + self.comboBox.currentText()
+            removeSelectedServer(selectedServer)
+            self.fillComboBoxServer()
+            self.fillComboBoxConfigs()
 
     def saveFileDialog(self):
         my_dir = QFileDialog.getExistingDirectory(self, "Open a folder", installPath, QFileDialog.ShowDirsOnly)
@@ -645,306 +714,309 @@ class Ui(QtWidgets.QDialog):
             self.readServerSettings()
 
     def saveConfigINI(self):
-        ServerConfigsPath = os.path.join(installPath, selectedServer, 'DedicatedServerWrapperCMDtool', 'configs', selectedConfig)
-        config = ConfigParser()
-        config.read(ServerConfigsPath, encoding='utf8')
-
-        config['SETTINGS']['ServerName'] = self.lineEdit_2.text()
-        config['SETTINGS']['Password'] = self.lineEdit_3.text()
-        config['SETTINGS']['ServerRestart'] = self.lineEdit_4.text()
-        config['SERVERSETTINGS']['hostPort'] = self.lineEdit_14.text()
-        config['SERVERSETTINGS']['queryPort'] = self.lineEdit_15.text()
-        config['SERVERSETTINGS']['sleepWaiting'] = self.lineEdit_16.text()
-        config['SERVERSETTINGS']['sleepActive'] = self.lineEdit_17.text()
-
-        if(self.checkBox.isChecked()):
-            config['SETTINGS']['PracticeServer'] = '1'
+        if(self.comboBox.currentText() == ''):
+            pass
         else:
-            config['SETTINGS']['PracticeServer'] = '0'
+            ServerConfigsPath = os.path.join(installPath, selectedServer, 'DedicatedServerWrapperCMDtool', 'configs', selectedConfig)
+            config = ConfigParser()
+            config.read(ServerConfigsPath, encoding='utf8')
 
-        if(self.checkBox_2.isChecked()):
-            config['WEATHERCHANCE']['Sunshine'] = '1'
-        else:
-            config['WEATHERCHANCE']['Sunshine'] = '0'
+            config['SETTINGS']['ServerName'] = self.lineEdit_2.text()
+            config['SETTINGS']['Password'] = self.lineEdit_3.text()
+            config['SETTINGS']['ServerRestart'] = self.lineEdit_4.text()
+            config['SERVERSETTINGS']['hostPort'] = self.lineEdit_14.text()
+            config['SERVERSETTINGS']['queryPort'] = self.lineEdit_15.text()
+            config['SERVERSETTINGS']['sleepWaiting'] = self.lineEdit_16.text()
+            config['SERVERSETTINGS']['sleepActive'] = self.lineEdit_17.text()
 
-        if(self.checkBox_4.isChecked()):
-            config['SERVERSETTINGS']['selectDS'] = '1'
-        else:
-            config['SERVERSETTINGS']['selectDS'] = '0'
+            if(self.checkBox.isChecked()):
+                config['SETTINGS']['PracticeServer'] = '1'
+            else:
+                config['SETTINGS']['PracticeServer'] = '0'
 
-        if(self.checkBox_3.isChecked()):
-            config['SERVERSETTINGS']['enableHttpApi'] = '1'
-        else:
-            config['SERVERSETTINGS']['enableHttpApi'] = '0'
+            if(self.checkBox_2.isChecked()):
+                config['WEATHERCHANCE']['Sunshine'] = '1'
+            else:
+                config['WEATHERCHANCE']['Sunshine'] = '0'
 
-        if(self.checkBox_10.isChecked()):
-            config['WEATHERCHANCE']['AuthenticWeather'] = '1'
-        else:
-            config['WEATHERCHANCE']['AuthenticWeather'] = '0'
+            if(self.checkBox_4.isChecked()):
+                config['SERVERSETTINGS']['selectDS'] = '1'
+            else:
+                config['SERVERSETTINGS']['selectDS'] = '0'
 
+            if(self.checkBox_3.isChecked()):
+                config['SERVERSETTINGS']['enableHttpApi'] = '1'
+            else:
+                config['SERVERSETTINGS']['enableHttpApi'] = '0'
 
+            if(self.checkBox_10.isChecked()):
+                config['WEATHERCHANCE']['AuthenticWeather'] = '1'
+            else:
+                config['WEATHERCHANCE']['AuthenticWeather'] = '0'
 
-        if(self.checkBox_5.isChecked()):
-            config['RACESETTINGS']['MandatoryPitStop'] = '1'
-        else:
-            config['RACESETTINGS']['MandatoryPitStop'] = '0'
 
-        if(self.checkBox_6.isChecked()):
-            config['RACESETTINGS']['Cooldownlap'] = '1'
-        else:
-            config['RACESETTINGS']['Cooldownlap'] = '0'
 
-        if(self.checkBox_7.isChecked()):
-            config['RACESETTINGS']['Formationlap'] = '1'
-        else:
-            config['RACESETTINGS']['Formationlap'] = '0'
+            if(self.checkBox_5.isChecked()):
+                config['RACESETTINGS']['MandatoryPitStop'] = '1'
+            else:
+                config['RACESETTINGS']['MandatoryPitStop'] = '0'
 
-        if(self.checkBox_9.isChecked()):
-            config['RACESETTINGS']['Rollingstart'] = '1'
-        else:
-            config['RACESETTINGS']['Rollingstart'] = '0'
+            if(self.checkBox_6.isChecked()):
+                config['RACESETTINGS']['Cooldownlap'] = '1'
+            else:
+                config['RACESETTINGS']['Cooldownlap'] = '0'
 
+            if(self.checkBox_7.isChecked()):
+                config['RACESETTINGS']['Formationlap'] = '1'
+            else:
+                config['RACESETTINGS']['Formationlap'] = '0'
 
+            if(self.checkBox_9.isChecked()):
+                config['RACESETTINGS']['Rollingstart'] = '1'
+            else:
+                config['RACESETTINGS']['Rollingstart'] = '0'
 
-        MaxGrid = self.comboBox_4.currentText()
-        if MaxGrid == 'AUTO':
-            MaxGrid = 'max'
 
-        config['SETTINGS']['MaxGrid'] = MaxGrid
 
+            MaxGrid = self.comboBox_4.currentText()
+            if MaxGrid == 'AUTO':
+                MaxGrid = 'max'
 
-        config['RACESETTINGS']['Track'] = self.comboBox_6.currentText()
+            config['SETTINGS']['MaxGrid'] = MaxGrid
 
 
-        ClassSlots = self.comboBox_11.currentText()
-        if ClassSlots == 'ALL':
-            ClassSlots = '0'
-        config['RACESETTINGS']['ClassSlots'] = ClassSlots
+            config['RACESETTINGS']['Track'] = self.comboBox_6.currentText()
 
 
+            ClassSlots = self.comboBox_11.currentText()
+            if ClassSlots == 'ALL':
+                ClassSlots = '0'
+            config['RACESETTINGS']['ClassSlots'] = ClassSlots
 
-        config['RACESETTINGS']['Class1'] = self.comboBox_12.currentText()
-        config['RACESETTINGS']['Class2'] = self.comboBox_14.currentText()
-        config['RACESETTINGS']['Class3'] = self.comboBox_13.currentText()
-        config['RACESETTINGS']['Class4'] = self.comboBox_15.currentText()
 
 
-        config['RACESETTINGS']['Year'] = str(self.dateEdit.date().year())
-        config['RACESETTINGS']['Month'] = str(self.dateEdit.date().month())
-        config['RACESETTINGS']['Day'] = str(self.dateEdit.date().day())
+            config['RACESETTINGS']['Class1'] = self.comboBox_12.currentText()
+            config['RACESETTINGS']['Class2'] = self.comboBox_14.currentText()
+            config['RACESETTINGS']['Class3'] = self.comboBox_13.currentText()
+            config['RACESETTINGS']['Class4'] = self.comboBox_15.currentText()
 
 
+            config['RACESETTINGS']['Year'] = str(self.dateEdit.date().year())
+            config['RACESETTINGS']['Month'] = str(self.dateEdit.date().month())
+            config['RACESETTINGS']['Day'] = str(self.dateEdit.date().day())
 
 
 
-        config['RACESETTINGS']['TimePractice'] = self.comboBox_16.currentText()
-        config['RACESETTINGS']['TimeQuali'] = self.comboBox_17.currentText()
-        config['RACESETTINGS']['TimeRace'] = self.comboBox_18.currentText()
 
 
+            config['RACESETTINGS']['TimePractice'] = self.comboBox_16.currentText()
+            config['RACESETTINGS']['TimeQuali'] = self.comboBox_17.currentText()
+            config['RACESETTINGS']['TimeRace'] = self.comboBox_18.currentText()
 
-        config['RACESETTINGS']['PracticeLenght'] = self.lineEdit_18.text()
-        config['RACESETTINGS']['QualifyLenght'] = self.lineEdit_19.text()
 
-        RaceLenght = self.lineEdit_20.text()
-        if(self.checkBox_8.isChecked()):
-            RaceLenght = RaceLenght + 'L'
-            config['RACESETTINGS']['RaceLenght'] = RaceLenght
-        else:
-            RaceLenght = RaceLenght + 'M'
-            config['RACESETTINGS']['RaceLenght'] = RaceLenght
 
+            config['RACESETTINGS']['PracticeLenght'] = self.lineEdit_18.text()
+            config['RACESETTINGS']['QualifyLenght'] = self.lineEdit_19.text()
 
+            RaceLenght = self.lineEdit_20.text()
+            if(self.checkBox_8.isChecked()):
+                RaceLenght = RaceLenght + 'L'
+                config['RACESETTINGS']['RaceLenght'] = RaceLenght
+            else:
+                RaceLenght = RaceLenght + 'M'
+                config['RACESETTINGS']['RaceLenght'] = RaceLenght
 
-        config['RACESETTINGS']['DateprogressP'] = self.comboBox_21.currentText()
-        config['RACESETTINGS']['DateprogressQ'] = self.comboBox_22.currentText()
-        config['RACESETTINGS']['DateprogressR'] = self.comboBox_23.currentText()
 
 
-        if(self.checkBox_10.isChecked()):
-            config['WEATHERCHANCE']['AuthenticWeather'] = '1'
-        else:
-            config['WEATHERCHANCE']['AuthenticWeather'] = '0'
+            config['RACESETTINGS']['DateprogressP'] = self.comboBox_21.currentText()
+            config['RACESETTINGS']['DateprogressQ'] = self.comboBox_22.currentText()
+            config['RACESETTINGS']['DateprogressR'] = self.comboBox_23.currentText()
 
 
+            if(self.checkBox_10.isChecked()):
+                config['WEATHERCHANCE']['AuthenticWeather'] = '1'
+            else:
+                config['WEATHERCHANCE']['AuthenticWeather'] = '0'
 
 
-        config['WEATHERCHANCE']['Clear'] = str(self.horizontalSlider_7.value())
-        config['WEATHERCHANCE']['LightCloud'] = str(self.horizontalSlider.value())
-        config['WEATHERCHANCE']['MediumCloud'] = str(self.horizontalSlider_2.value())
-        config['WEATHERCHANCE']['HeavyCloud'] = str(self.horizontalSlider_3.value())
-        config['WEATHERCHANCE']['Overcast'] = str(self.horizontalSlider_4.value())
-        config['WEATHERCHANCE']['LightRain'] = str(self.horizontalSlider_5.value())
-        config['WEATHERCHANCE']['Rain'] = str(self.horizontalSlider_6.value())
-        config['WEATHERCHANCE']['Storm'] = str(self.horizontalSlider_13.value())
-        config['WEATHERCHANCE']['ThunderStorm'] = str(self.horizontalSlider_8.value())
-        config['WEATHERCHANCE']['snow'] = str(self.horizontalSlider_9.value())
-        config['WEATHERCHANCE']['heavysnow'] = str(self.horizontalSlider_10.value())
-        config['WEATHERCHANCE']['blizzard'] = str(self.horizontalSlider_11.value())
-        config['WEATHERCHANCE']['Foggy'] = str(self.horizontalSlider_12.value())
-        config['WEATHERCHANCE']['FogWithRain'] = str(self.horizontalSlider_17.value())
-        config['WEATHERCHANCE']['HeavyFog'] = str(self.horizontalSlider_14.value())
-        config['WEATHERCHANCE']['HeavyFogWithRain'] = str(self.horizontalSlider_16.value())
-        config['WEATHERCHANCE']['Hazy'] = str(self.horizontalSlider_15.value())
 
 
+            config['WEATHERCHANCE']['Clear'] = str(self.horizontalSlider_7.value())
+            config['WEATHERCHANCE']['LightCloud'] = str(self.horizontalSlider.value())
+            config['WEATHERCHANCE']['MediumCloud'] = str(self.horizontalSlider_2.value())
+            config['WEATHERCHANCE']['HeavyCloud'] = str(self.horizontalSlider_3.value())
+            config['WEATHERCHANCE']['Overcast'] = str(self.horizontalSlider_4.value())
+            config['WEATHERCHANCE']['LightRain'] = str(self.horizontalSlider_5.value())
+            config['WEATHERCHANCE']['Rain'] = str(self.horizontalSlider_6.value())
+            config['WEATHERCHANCE']['Storm'] = str(self.horizontalSlider_13.value())
+            config['WEATHERCHANCE']['ThunderStorm'] = str(self.horizontalSlider_8.value())
+            config['WEATHERCHANCE']['snow'] = str(self.horizontalSlider_9.value())
+            config['WEATHERCHANCE']['heavysnow'] = str(self.horizontalSlider_10.value())
+            config['WEATHERCHANCE']['blizzard'] = str(self.horizontalSlider_11.value())
+            config['WEATHERCHANCE']['Foggy'] = str(self.horizontalSlider_12.value())
+            config['WEATHERCHANCE']['FogWithRain'] = str(self.horizontalSlider_17.value())
+            config['WEATHERCHANCE']['HeavyFog'] = str(self.horizontalSlider_14.value())
+            config['WEATHERCHANCE']['HeavyFogWithRain'] = str(self.horizontalSlider_16.value())
+            config['WEATHERCHANCE']['Hazy'] = str(self.horizontalSlider_15.value())
 
 
 
-        config['WEATHERSLOTS']['Practice'] = self.comboBox_27.currentText()
-        config['WEATHERSLOTS']['Qualify'] = self.comboBox_28.currentText()
-        config['WEATHERSLOTS']['Race'] = self.comboBox_29.currentText()
 
-        config['RACESETTINGS']['WeatherprogressP'] = self.comboBox_24.currentText()
-        config['RACESETTINGS']['WeatherprogressQ'] = self.comboBox_25.currentText()
-        config['RACESETTINGS']['WeatherprogressR'] = self.comboBox_26.currentText()
 
+            config['WEATHERSLOTS']['Practice'] = self.comboBox_27.currentText()
+            config['WEATHERSLOTS']['Qualify'] = self.comboBox_28.currentText()
+            config['WEATHERSLOTS']['Race'] = self.comboBox_29.currentText()
 
-        config['RACESETTINGS']['Damage'] = self.comboBox_31.currentText()
-        config['RACESETTINGS']['Fuel'] = self.comboBox_32.currentText()
-        config['RACESETTINGS']['TireWear'] = self.comboBox_33.currentText()
+            config['RACESETTINGS']['WeatherprogressP'] = self.comboBox_24.currentText()
+            config['RACESETTINGS']['WeatherprogressQ'] = self.comboBox_25.currentText()
+            config['RACESETTINGS']['WeatherprogressR'] = self.comboBox_26.currentText()
 
 
-        if(self.checkBox_54.isChecked()):
-            RankSafety = ''
-            RankSkill = ''
-        else:
-            RankSafety = self.comboBox_50.currentText()
-            RankSkill = str(self.spinBox_6.value())
+            config['RACESETTINGS']['Damage'] = self.comboBox_31.currentText()
+            config['RACESETTINGS']['Fuel'] = self.comboBox_32.currentText()
+            config['RACESETTINGS']['TireWear'] = self.comboBox_33.currentText()
 
-        config['RACESETTINGS']['MinimumOnlineRank'] = RankSafety + RankSkill
 
+            if(self.checkBox_54.isChecked()):
+                RankSafety = ''
+                RankSkill = ''
+            else:
+                RankSafety = self.comboBox_50.currentText()
+                RankSkill = str(self.spinBox_6.value())
 
+            config['RACESETTINGS']['MinimumOnlineRank'] = RankSafety + RankSkill
 
 
-        if(self.checkBox_51.isChecked()):
-            config['RACESETTINGS']['Penalties'] = '1'
-        else:
-            config['RACESETTINGS']['Penalties'] = '0'
-        if(self.checkBox_52.isChecked()):
-            config['RACESETTINGS']['PenaltyCut'] = '1'
-        else:
-            config['RACESETTINGS']['PenaltyCut'] = '0'
-        if(self.checkBox_53.isChecked()):
-            config['RACESETTINGS']['PenaltyDT'] = '1'
-        else:
-            config['RACESETTINGS']['PenaltyDT'] = '0'
 
 
-        if(self.checkBox_34.isChecked()):
-            config['RACESETTINGS']['MechanicalFailures'] = '1'
-        else:
-            config['RACESETTINGS']['MechanicalFailures'] = '0'
+            if(self.checkBox_51.isChecked()):
+                config['RACESETTINGS']['Penalties'] = '1'
+            else:
+                config['RACESETTINGS']['Penalties'] = '0'
+            if(self.checkBox_52.isChecked()):
+                config['RACESETTINGS']['PenaltyCut'] = '1'
+            else:
+                config['RACESETTINGS']['PenaltyCut'] = '0'
+            if(self.checkBox_53.isChecked()):
+                config['RACESETTINGS']['PenaltyDT'] = '1'
+            else:
+                config['RACESETTINGS']['PenaltyDT'] = '0'
 
 
+            if(self.checkBox_34.isChecked()):
+                config['RACESETTINGS']['MechanicalFailures'] = '1'
+            else:
+                config['RACESETTINGS']['MechanicalFailures'] = '0'
 
-        config['RACESETTINGS']['PenaltyMax'] = self.lineEdit_26.text()
 
 
+            config['RACESETTINGS']['PenaltyMax'] = self.lineEdit_26.text()
 
 
 
 
-        if(self.checkBox_55.isChecked()):
-            config['RACESETTINGS']['ManualGears'] = '1'
-        else:
-            config['RACESETTINGS']['ManualGears'] = '0'
 
-        if(self.checkBox_56.isChecked()):
-            config['RACESETTINGS']['PitstopErrors'] = '1'
-        else:
-            config['RACESETTINGS']['PitstopErrors'] = '0'
 
-        if(self.checkBox_57.isChecked()):
-            config['RACESETTINGS']['Racedirector'] = '1'
-        else:
-            config['RACESETTINGS']['Racedirector'] = '0'
+            if(self.checkBox_55.isChecked()):
+                config['RACESETTINGS']['ManualGears'] = '1'
+            else:
+                config['RACESETTINGS']['ManualGears'] = '0'
 
-        if(self.checkBox_58.isChecked()):
-            config['RACESETTINGS']['Broadcaster'] = '1'
-        else:
-            config['RACESETTINGS']['Broadcaster'] = '0'
+            if(self.checkBox_56.isChecked()):
+                config['RACESETTINGS']['PitstopErrors'] = '1'
+            else:
+                config['RACESETTINGS']['PitstopErrors'] = '0'
 
-        if(self.checkBox_59.isChecked()):
-            config['RACESETTINGS']['CockpitView'] = '1'
-        else:
-            config['RACESETTINGS']['CockpitView'] = '0'
+            if(self.checkBox_57.isChecked()):
+                config['RACESETTINGS']['Racedirector'] = '1'
+            else:
+                config['RACESETTINGS']['Racedirector'] = '0'
 
-        if(self.checkBox_60.isChecked()):
-            config['RACESETTINGS']['ManualPitStops'] = '1'
-        else:
-            config['RACESETTINGS']['ManualPitStops'] = '0'
+            if(self.checkBox_58.isChecked()):
+                config['RACESETTINGS']['Broadcaster'] = '1'
+            else:
+                config['RACESETTINGS']['Broadcaster'] = '0'
 
-        if(self.checkBox_61.isChecked()):
-            config['RACESETTINGS']['ManualRolling'] = '1'
-        else:
-            config['RACESETTINGS']['ManualRolling'] = '0'
+            if(self.checkBox_59.isChecked()):
+                config['RACESETTINGS']['CockpitView'] = '1'
+            else:
+                config['RACESETTINGS']['CockpitView'] = '0'
 
-        if(self.checkBox_62.isChecked()):
-            config['RACESETTINGS']['ForceSetups'] = '1'
-        else:
-            config['RACESETTINGS']['ForceSetups'] = '0'
+            if(self.checkBox_60.isChecked()):
+                config['RACESETTINGS']['ManualPitStops'] = '1'
+            else:
+                config['RACESETTINGS']['ManualPitStops'] = '0'
 
+            if(self.checkBox_61.isChecked()):
+                config['RACESETTINGS']['ManualRolling'] = '1'
+            else:
+                config['RACESETTINGS']['ManualRolling'] = '0'
 
+            if(self.checkBox_62.isChecked()):
+                config['RACESETTINGS']['ForceSetups'] = '1'
+            else:
+                config['RACESETTINGS']['ForceSetups'] = '0'
 
 
 
-        if(self.checkBox_63.isChecked()):
-            config['RACESETTINGS']['AutoEnginestart'] = '1'
-        else:
-            config['RACESETTINGS']['AutoEnginestart'] = '0'
 
-        if(self.checkBox_64.isChecked()):
-            config['RACESETTINGS']['Drivingline'] = '1'
-        else:
-            config['RACESETTINGS']['Drivingline'] = '0'
 
-        if(self.checkBox_65.isChecked()):
-            config['RACESETTINGS']['RealisticAIDS'] = '1'
-        else:
-            config['RACESETTINGS']['RealisticAIDS'] = '0'
+            if(self.checkBox_63.isChecked()):
+                config['RACESETTINGS']['AutoEnginestart'] = '1'
+            else:
+                config['RACESETTINGS']['AutoEnginestart'] = '0'
 
-        if(self.checkBox_66.isChecked()):
-            config['RACESETTINGS']['AllowTC'] = '1'
-        else:
-            config['RACESETTINGS']['AllowTC'] = '0'
+            if(self.checkBox_64.isChecked()):
+                config['RACESETTINGS']['Drivingline'] = '1'
+            else:
+                config['RACESETTINGS']['Drivingline'] = '0'
 
-        if(self.checkBox_67.isChecked()):
-            config['RACESETTINGS']['AllowABS'] = '1'
-        else:
-            config['RACESETTINGS']['AllowABS'] = '0'
+            if(self.checkBox_65.isChecked()):
+                config['RACESETTINGS']['RealisticAIDS'] = '1'
+            else:
+                config['RACESETTINGS']['RealisticAIDS'] = '0'
 
-        if(self.checkBox_68.isChecked()):
-            config['RACESETTINGS']['AllowSC'] = '1'
-        else:
-            config['RACESETTINGS']['AllowSC'] = '0'
+            if(self.checkBox_66.isChecked()):
+                config['RACESETTINGS']['AllowTC'] = '1'
+            else:
+                config['RACESETTINGS']['AllowTC'] = '0'
 
-        if(self.checkBox_69.isChecked()):
-            config['RACESETTINGS']['RaceReadyInput'] = '1'
-        else:
-            config['RACESETTINGS']['RaceReadyInput'] = '0'
+            if(self.checkBox_67.isChecked()):
+                config['RACESETTINGS']['AllowABS'] = '1'
+            else:
+                config['RACESETTINGS']['AllowABS'] = '0'
 
-        if(self.checkBox_70.isChecked()):
-            config['RACESETTINGS']['PitspeedLimiter'] = '1'
-        else:
-            config['RACESETTINGS']['PitspeedLimiter'] = '0'
+            if(self.checkBox_68.isChecked()):
+                config['RACESETTINGS']['AllowSC'] = '1'
+            else:
+                config['RACESETTINGS']['AllowSC'] = '0'
 
-        if(self.checkBox_71.isChecked()):
-            config['RACESETTINGS']['Ghosting'] = '1'
-        else:
-            config['RACESETTINGS']['Ghosting'] = '0'
+            if(self.checkBox_69.isChecked()):
+                config['RACESETTINGS']['RaceReadyInput'] = '1'
+            else:
+                config['RACESETTINGS']['RaceReadyInput'] = '0'
 
-        if(self.checkBox_72.isChecked()):
-            config['RACESETTINGS']['GhostCollisions'] = '1'
-        else:
-            config['RACESETTINGS']['GhostCollisions'] = '0'
+            if(self.checkBox_70.isChecked()):
+                config['RACESETTINGS']['PitspeedLimiter'] = '1'
+            else:
+                config['RACESETTINGS']['PitspeedLimiter'] = '0'
 
+            if(self.checkBox_71.isChecked()):
+                config['RACESETTINGS']['Ghosting'] = '1'
+            else:
+                config['RACESETTINGS']['Ghosting'] = '0'
 
+            if(self.checkBox_72.isChecked()):
+                config['RACESETTINGS']['GhostCollisions'] = '1'
+            else:
+                config['RACESETTINGS']['GhostCollisions'] = '0'
 
 
 
-        with open(ServerConfigsPath, 'w', encoding='utf8') as ServerConfigsPath:
-            config.write(ServerConfigsPath)
+
+
+            with open(ServerConfigsPath, 'w', encoding='utf8') as ServerConfigsPath:
+                config.write(ServerConfigsPath)
 
 
     def readServerSettings(self):
@@ -1404,14 +1476,16 @@ def main():
     QDarkPalette().set_app(app)
     window = Start()
     window.setWindowTitle(
-        'Project Cars 2 Dedicated Server wrapper 1.1 - by GEF-GAMING.DE')
-
+        'Project Cars 2 Server Manager GUI 1.3 - by GEF-GAMING.DE')
+    window.setWindowIcon(QtGui.QIcon(iconFilePath))
     sys.exit(app.exec_())
 
 
 if __name__ == '__main__':
     uiFilePath = resource_path("ui/interfaceNEW.ui")
     uiLoginFilePath = resource_path("ui/interfaceLogin.ui")
+    uiDownloadFilePath = resource_path("ui/interfaceDownloadNEW.ui")
+    iconFilePath = resource_path("ui/main.ico")
     if getattr(sys, 'frozen', False):
         folderCurrent = os.path.dirname(sys.executable)
         settingsPath = os.path.abspath(os.path.join(folderCurrent, 'data', 'settings.ini'))
