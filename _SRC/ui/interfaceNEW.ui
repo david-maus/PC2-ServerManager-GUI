@@ -113,6 +113,9 @@
           <height>20</height>
          </size>
         </property>
+        <property name="toolTip">
+         <string>Your global Path to your Servers</string>
+        </property>
         <property name="text">
          <string/>
         </property>
@@ -134,6 +137,9 @@
           <width>16777215</width>
           <height>20</height>
          </size>
+        </property>
+        <property name="toolTip">
+         <string>Your global Path to your Servers</string>
         </property>
         <property name="text">
          <string>...</string>
@@ -171,6 +177,9 @@
           <width>65</width>
           <height>20</height>
          </size>
+        </property>
+        <property name="toolTip">
+         <string>Set your steam username and password</string>
         </property>
         <property name="text">
          <string>Login</string>
@@ -255,6 +264,9 @@
           <height>20</height>
          </size>
         </property>
+        <property name="toolTip">
+         <string>The name for your ServerFolder you create</string>
+        </property>
         <property name="text">
          <string/>
         </property>
@@ -282,6 +294,9 @@
           <width>120</width>
           <height>20</height>
          </size>
+        </property>
+        <property name="toolTip">
+         <string>The name for your config you create or rename</string>
         </property>
         <property name="text">
          <string/>
@@ -355,6 +370,9 @@
           <height>20</height>
          </size>
         </property>
+        <property name="toolTip">
+         <string>Choose your server if you have multiple</string>
+        </property>
         <item>
          <property name="text">
           <string>CUP Server</string>
@@ -375,6 +393,9 @@
           <width>100</width>
           <height>20</height>
          </size>
+        </property>
+        <property name="toolTip">
+         <string>Choose your config from you chosen server above</string>
         </property>
         <item>
          <property name="text">
